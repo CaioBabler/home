@@ -1,0 +1,41 @@
+blueprint:
+  name: Paralelo Virtual
+  description: Acenda/Apaga todos os switches/lights do grupo simultaneamente
+  domain: automation
+  input:
+    entrada_switchs:
+      name: Escolha os pontos de Iluminação
+      selector:
+        entity:
+          domain:
+            - switch
+            - light
+          multiple: true
+
+trigger:
+  - platform: state
+    entity_id: !input entrada_switchs
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'on' }}"
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input entrada_switchs
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state == 'off' }}"
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input entrada_switchs
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 2
+      milliseconds: 0
+
+mode: single
