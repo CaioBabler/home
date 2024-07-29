@@ -7,7 +7,6 @@ blueprint:
       name: Sensor de Presença
       selector:
         entity:
-          domain: binary_sensor
     interruptores_luzes:
       name: Interruptores das Luzes
       selector:
@@ -46,20 +45,3 @@ action:
   - service: homeassistant.turn_on
     target:
       entity_id: !input interruptores_luzes
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ not is_state('input_boolean.ligar_e_desligar', 'off') }}"
-        sequence:
-          - wait_for_trigger:
-              - platform: state
-                entity_id: !input sensor_presenca
-                from: "on"
-                to: "off"
-                for:
-                  minutes: !input tempo_desligar
-          - service: homeassistant.turn_off
-            target:
-              entity_id: !input interruptores_luzes
-
-mode: restart
