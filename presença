@@ -1,33 +1,26 @@
 blueprint:
-  name: Paralelo
-  description: Acenda/Apaga todos os switches/lights do grupo com base no status de um sensor de presença durante a noite
+  name: Automação de Presença Noturna
+  description: Acenda as lâmpadas selecionadas quando houver presença detectada após o horário especificado.
   domain: automation
   input:
     sensor_presenca:
-      name: Escolha o sensor de presença
+      name: Sensor de Presença Humana
+      description: Selecione o sensor de presença humana.
       selector:
         entity:
-          domain:
-            - binary_sensor
-          device_class: presence
-    entrada_switchs:
-      name: Escolha os pontos de Iluminação
+          domain: binary_sensor
+          device_class: motion
+    lampadas:
+      name: Lâmpadas
+      description: Selecione as lâmpadas que serão acesas.
       selector:
         entity:
-          domain:
-            - switch
-            - light
+          domain: light
           multiple: true
     horario_inicio:
-      name: Horário de início
-      description: "Horário em que a automação começa a funcionar (HH:MM:SS)"
-      default: "20:00:00"
-      selector:
-        time: {}
-    horario_fim:
-      name: Horário de fim
-      description: "Horário em que a automação para de funcionar (HH:MM:SS)"
-      default: "06:00:00"
+      name: Horário de Início
+      description: "Horário a partir do qual a automação deve funcionar (HH:MM:SS)"
+      default: "18:00:00"
       selector:
         time: {}
 
@@ -35,30 +28,15 @@ trigger:
   - platform: state
     entity_id: !input 'sensor_presenca'
     to: 'on'
-  - platform: state
-    entity_id: !input 'sensor_presenca'
-    to: 'off'
 
 condition:
   - condition: time
     after: !input 'horario_inicio'
-    before: !input 'horario_fim'
+    before: 'sunrise'  # Condição para verificar se é noite
 
 action:
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.to_state.state == 'on' }}"
-        sequence:
-          - service: homeassistant.turn_on
-            target:
-              entity_id: !input 'entrada_switchs'
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.to_state.state == 'off' }}"
-        sequence:
-          - service: homeassistant.turn_off
-            target:
-              entity_id: !input 'entrada_switchs'
+  - service: homeassistant.turn_on
+    target:
+      entity_id: !input 'lampadas'
 
 mode: restart
