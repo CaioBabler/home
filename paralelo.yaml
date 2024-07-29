@@ -1,15 +1,8 @@
-blueprint:
+ blueprint:
   name: Paralelo
-  description: Acenda/Apaga todos os switches/lights do grupo com base no status de um sensor de presença durante a noite
+  description: Acenda/Apaga todos os switches/lights do grupo simultaneamente
   domain: automation
   input:
-    sensor_presenca:
-      name: Escolha o sensor de presença
-      selector:
-        entity:
-          domain:
-            - binary_sensor
-          device_class: presence
     entrada_switchs:
       name: Escolha os pontos de Iluminação
       selector:
@@ -18,31 +11,10 @@ blueprint:
             - switch
             - light
           multiple: true
-    horario_inicio:
-      name: Horário de início
-      description: "Horário em que a automação começa a funcionar (HH:MM:SS)"
-      default: "20:00:00"
-      selector:
-        time: {}
-    horario_fim:
-      name: Horário de fim
-      description: "Horário em que a automação para de funcionar (HH:MM:SS)"
-      default: "06:00:00"
-      selector:
-        time: {}
 
 trigger:
   - platform: state
-    entity_id: !input 'sensor_presenca'
-    to: 'on'
-  - platform: state
-    entity_id: !input 'sensor_presenca'
-    to: 'off'
-
-condition:
-  - condition: time
-    after: !input 'horario_inicio'
-    before: !input 'horario_fim'
+    entity_id: !input entrada_switchs
 
 action:
   - choose:
@@ -52,13 +24,13 @@ action:
         sequence:
           - service: homeassistant.turn_on
             target:
-              entity_id: !input 'entrada_switchs'
+              entity_id: !input entrada_switchs
       - conditions:
           - condition: template
             value_template: "{{ trigger.to_state.state == 'off' }}"
         sequence:
           - service: homeassistant.turn_off
             target:
-              entity_id: !input 'entrada_switchs'
+              entity_id: !input entrada_switchs
 
 mode: restart
