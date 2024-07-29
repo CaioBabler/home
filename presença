@@ -1,6 +1,6 @@
 blueprint:
   name: Presença e Controle de Luzes
-  description: Liga as luzes quando presença é detectada e desliga após um tempo configurável sem presença
+  description: Liga as luzes quando presença é detectada e, opcionalmente, desliga após um tempo configurável sem presença
   domain: automation
   input:
     sensor_presenca:
@@ -19,13 +19,19 @@ blueprint:
           multiple: true
     tempo_desligar:
       name: Tempo para Desligar (em minutos)
-      description: Tempo em minutos para desligar as luzes após não detectar presença
+      description: Tempo em minutos para desligar as luzes após não detectar presença (se aplicável)
       default: 30
       selector:
         number:
           min: 1
           max: 120
           unit_of_measurement: minutes
+    ligar_e_desligar:
+      name: Ligar e Desligar
+      description: Escolha se as luzes devem desligar após o tempo configurável
+      default: false
+      selector:
+        boolean:
 
 trigger:
   - platform: state
@@ -45,15 +51,20 @@ action:
           - service: homeassistant.turn_on
             target:
               entity_id: !input interruptores_luzes
-  - wait_for_trigger:
-      - platform: state
-        entity_id: !input sensor_presenca
-        from: "on"
-        to: "off"
-        for:
-          minutes: !input tempo_desligar
-  - service: homeassistant.turn_off
-    target:
-      entity_id: !input interruptores_luzes
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ not is_state('input_boolean.ligar_e_desligar', 'off') }}"
+        sequence:
+          - wait_for_trigger:
+              - platform: state
+                entity_id: !input sensor_presenca
+                from: "on"
+                to: "off"
+                for:
+                  minutes: !input tempo_desligar
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input interruptores_luzes
 
 mode: restart
