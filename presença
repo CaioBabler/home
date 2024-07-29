@@ -1,6 +1,6 @@
 blueprint:
   name: Presença e Controle de Luzes
-  description: Liga as luzes quando presença é detectada e, opcionalmente, desliga após um tempo configurável sem presença
+  description: Liga as luzes quando presença é detectada após o pôr do sol e, opcionalmente, desliga após um tempo configurável sem presença
   domain: automation
   input:
     sensor_presenca:
@@ -39,7 +39,9 @@ trigger:
     from: "off"
     to: "on"
 
-condition: []
+condition:
+  - condition: sun
+    after: sunset
 
 action:
   - choose:
