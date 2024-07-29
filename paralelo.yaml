@@ -1,4 +1,4 @@
- blueprint:
+blueprint:
   name: Paralelo
   description: Acenda/Apaga todos os switches/lights do grupo simultaneamente
   domain: automation
